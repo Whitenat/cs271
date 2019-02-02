@@ -15,5 +15,20 @@ CHIP RAM8 {
     OUT out[16];
 
     PARTS:
-    // Put your code here:
+
+    Register(in = in, load = load, out = a);
+    Register(in = in, load = load, out = b);
+    Register(in = in, load = load, out = c);
+    Register(in = in, load = load, out = d);
+    Register(in = in, load = load, out = e);
+    Register(in = in, load = load, out = f);
+    Register(in = in, load = load, out = g);
+    Register(in = in, load = load, out = h);
+
+    Not(in = address[0], out = notSZero);
+    Not(in = address[1], out = notSOne);
+    Not(in = address[2], out = notSTwo);
+
+    
+    
 }
