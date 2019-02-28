@@ -39,5 +39,50 @@ CHIP CPU {
         pc[15];          // address of next instruction
 
     PARTS:
-    // Put your code here:
+        //C or A Instruction
+        //determines if it is a C or A instruction based on the msb
+    Mux16(a=instruction, b=aluOut, sel=instruction[15], out = msbMuxOut);
+
+        //A Register
+        //If its a c instruction with an A dest code or its an A instruction it will go to the ARegister
+    And(a = instruction[15], b = instruction[5], out = cAddress);
+    Not(in = instruction[15], out = aInstruction);
+    Or(a = cAddress, b = aInstruction, out = aRegisterLoad);
+
+    ARegister(in=msbMuxOut, load=aRegisterLoad, out=aOut, out[0..14] = addressM);
+
+        //M or A register using the 'a' bit
+        //If it is a c instruction and the a bit is true then M else A
+    And(a = instruction[15], b = instruction[12], out = aOrmOut);
+
+    Mux16(a=aOut, b=inM, sel=aOrmOut, out =amMuxOut);
+
+        //D Register
+        //whether the ALU output is written to the DRegister is determined by it being a C instruction and the d2 bit
+    And(a = instruction[4], b = instruction[15], out = writeD);
+    DRegister(in=aluOut, load= writeD, out=dOut);
+
+        //WriteM
+        //whether writeM is true is dependant on it being a C instruction and having the d3 bit be true
+    And(a= instruction[15], b = instruction[3], out = writeM);
+
+        //ALU
+    ALU(x=dOut, y=amMuxOut, zx=instruction[11], nx=instruction[10], zy=instruction[9], ny=instruction[8], f=instruction[7], no=instruction[6], out=aluOut, out = outM,  zr=zero, ng=negative);
+
+        //JUMPS
+    Not(in = negativeZero, out = positive);
+    Not(in = zero, out = notZero);
+    Or(a = negative, b = zero, out = negativeZero);
+
+    And(a = instruction[0], b = positive, out = jgt);                //if j3 and positive jgt
+    And(a = instruction[1], b = zero, out = jeq);                   //if j2 and zero jeq
+    And(a = instruction[2], b = negative, out = jlt);               //if j1 and negative jlt
+
+        //If any of these are met and it is a C instruction then the jump condition is true and it will overide the incrementer
+    Or8Way(in[0] = jgt, in[1] = jeq, in[2] = jlt, out = jumpCondition);
+
+    And(a = jumpCondition, b = instruction[15], out = jumpload);
+    
+        //PC
+    PC(in=aOut, load=jumpload, inc=true, reset=reset, out[0..14]=pc);
 }

@@ -12,3 +12,51 @@
 // the screen should remain fully clear as long as no key is pressed.
 
 // Put your code here.
+
+(start)
+@SCREEN
+D=A
+@currentLocation
+M=D
+
+@KBD
+D = M
+@blackloop
+D;JGT
+@whiteloop
+D;JEQ
+
+(blackloop)
+@currentLocation
+D = M
+A = D
+M = -1
+//Increment here and if we're at KBD location, restart
+@currentLocation
+D = M
+M = D + 1
+D = M
+@KBD
+D = A - D
+@blackloop
+D;JGT
+
+(whiteloop)
+@currentLocation
+D = M
+A = D
+M = 0
+//Increment here and if we're at KBD location, restart
+@currentLocation
+D = M
+M = D + 1
+D = M
+@KBD
+D = A - D
+@whiteloop
+D;JGT
+
+@start
+0;JMP
+
+
